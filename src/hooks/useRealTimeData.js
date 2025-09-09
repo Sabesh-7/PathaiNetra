@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import cameraManager from '../services/cameraManager';
+import yoloService from '../services/yoloService';
 
 export const useRealTimeData = (currentView) => {
   const [congestionData, setCongestionData] = useState({});
@@ -14,49 +16,131 @@ export const useRealTimeData = (currentView) => {
 
   useEffect(() => {
     if (currentView === 'civilian' || currentView === 'admin') {
+      // Initialize cameras if not already done
+      if (cameraManager.getAllCamerasStatus().length === 0) {
+        cameraManager.registerCamera(
+          'nh86_main',
+          'NH-86 Main Highway',
+          '/api/camera/nh86',
+          { frameRate: 30, resolution: { width: 1280, height: 720 } }
+        );
+        cameraManager.registerCamera(
+          'temple_road',
+          'Temple Road',
+          '/api/camera/temple',
+          { frameRate: 30, resolution: { width: 1280, height: 720 } }
+        );
+        cameraManager.registerCamera(
+          'market_street',
+          'Market Street',
+          '/api/camera/market',
+          { frameRate: 30, resolution: { width: 1280, height: 720 } }
+        );
+        cameraManager.registerCamera(
+          'bypass_road',
+          'Bypass Road',
+          '/api/camera/bypass',
+          { frameRate: 30, resolution: { width: 1280, height: 720 } }
+        );
+        cameraManager.registerCamera(
+          'ring_road',
+          'Ring Road',
+          '/api/camera/ring',
+          { frameRate: 30, resolution: { width: 1280, height: 720 } }
+        );
+
+        // Register pedestrian cameras
+        cameraManager.registerCamera(
+          'ghat_path1',
+          'Ghat Path 1',
+          '/api/camera/ghat1',
+          { frameRate: 30, resolution: { width: 1280, height: 720 } }
+        );
+        cameraManager.registerCamera(
+          'ghat_path2',
+          'Ghat Path 2',
+          '/api/camera/ghat2',
+          { frameRate: 30, resolution: { width: 1280, height: 720 } }
+        );
+        cameraManager.registerCamera(
+          'temple_approach',
+          'Temple Approach',
+          '/api/camera/temple_approach',
+          { frameRate: 30, resolution: { width: 1280, height: 720 } }
+        );
+        cameraManager.registerCamera(
+          'market_route',
+          'Market Route',
+          '/api/camera/market_route',
+          { frameRate: 30, resolution: { width: 1280, height: 720 } }
+        );
+
+        // Start processing
+        cameraManager.startProcessing();
+        
+        // Activate all cameras
+        const allCameras = cameraManager.getAllCamerasStatus();
+        allCameras.forEach(camera => {
+          cameraManager.activateCamera(camera.id);
+        });
+      }
+
       const interval = setInterval(() => {
-        setCongestionData({
-          'NH-86 Main Highway': Math.floor(Math.random() * 100),
-          'Temple Road': Math.floor(Math.random() * 100),
-          'Market Street': Math.floor(Math.random() * 100),
-          'Bypass Road': Math.floor(Math.random() * 100),
-          'Ring Road': Math.floor(Math.random() * 100)
+        // Get real-time traffic data from YOLO service
+        const trafficData = cameraManager.getTrafficData();
+        
+        // Update congestion data based on real camera feeds
+        const congestion = {};
+        trafficData.cameras.forEach(camera => {
+          congestion[camera.name] = camera.congestionScore;
         });
+        setCongestionData(congestion);
 
-        setWalkingPaths({
-          'Ghat Path 1': Math.floor(Math.random() * 100),
-          'Ghat Path 2': Math.floor(Math.random() * 100),
-          'Temple Approach': Math.floor(Math.random() * 100),
-          'Market Route': Math.floor(Math.random() * 100)
+        // Update walking paths (pedestrian cameras)
+        const pedestrianCameras = trafficData.cameras.filter(cam => 
+          cam.name.includes('Path') || cam.name.includes('Approach') || cam.name.includes('Route')
+        );
+        const walkingPathsData = {};
+        pedestrianCameras.forEach(camera => {
+          walkingPathsData[camera.name] = camera.congestionScore;
         });
+        setWalkingPaths(walkingPathsData);
 
-        setParkingData({
-          'Zone 1 Near Ghat': { total: 500, occupied: Math.floor(Math.random() * 500) },
-          'Zone 2 Temple': { total: 300, occupied: Math.floor(Math.random() * 300) },
-          'Zone 3 Market': { total: 800, occupied: Math.floor(Math.random() * 800) },
-          'Zone 4 Bypass': { total: 200, occupied: Math.floor(Math.random() * 200) }
-        });
+        // Update parking data (simulated based on congestion)
+        const parkingZones = {
+          'Zone 1 Near Ghat': { total: 500, occupied: Math.floor(congestion['Ghat Path 1'] * 5) },
+          'Zone 2 Temple': { total: 300, occupied: Math.floor(congestion['Temple Approach'] * 3) },
+          'Zone 3 Market': { total: 800, occupied: Math.floor(congestion['Market Street'] * 8) },
+          'Zone 4 Bypass': { total: 200, occupied: Math.floor(congestion['Bypass Road'] * 2) }
+        };
+        setParkingData(parkingZones);
 
+        // Update real-time stats
         setRealTimeStats({
-          totalVehicles: Math.floor(Math.random() * 50000) + 30000,
-          pedestrianCount: Math.floor(Math.random() * 200000) + 100000,
-          avgCongestion: Math.floor(Math.random() * 100),
-          emergencyLaneStatus: Math.floor(Math.random() * 20) + 80
+          totalVehicles: trafficData.totalVehicles,
+          pedestrianCount: Math.floor(trafficData.totalVehicles * 0.3), // Estimate pedestrians
+          avgCongestion: trafficData.avgCongestion,
+          emergencyLaneStatus: Math.max(95 - trafficData.avgCongestion * 0.1, 80)
         });
 
-        if (Math.random() < 0.15) {
-          setEmergencyAlerts(prev => [
-            ...prev.slice(-4),
-            {
-              id: Date.now(),
-              type: Math.random() < 0.5 ? 'violation' : 'congestion',
-              category: Math.random() < 0.33 ? 'vehicle' : Math.random() < 0.5 ? 'pedestrian' : 'emergency',
-              location: `Junction ${Math.floor(Math.random() * 10) + 1}`,
-              time: new Date().toLocaleTimeString(),
-              severity: Math.random() < 0.3 ? 'high' : 'medium',
-              message: 'Traffic congestion detected'
-            }
-          ]);
+        // Generate emergency alerts based on high congestion
+        if (trafficData.avgCongestion > 80 && Math.random() < 0.3) {
+          const highCongestionCameras = trafficData.cameras.filter(cam => cam.congestionScore > 80);
+          if (highCongestionCameras.length > 0) {
+            const randomCamera = highCongestionCameras[Math.floor(Math.random() * highCongestionCameras.length)];
+            setEmergencyAlerts(prev => [
+              ...prev.slice(-4),
+              {
+                id: Date.now(),
+                type: 'congestion',
+                category: 'vehicle',
+                location: randomCamera.name,
+                time: new Date().toLocaleTimeString(),
+                severity: randomCamera.congestionScore > 90 ? 'high' : 'medium',
+                message: `High congestion detected at ${randomCamera.name}`
+              }
+            ]);
+          }
         }
       }, 3000);
 

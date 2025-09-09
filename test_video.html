@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Video Generator</title>
+</head>
+<body>
+    <h1>Test Video Generator</h1>
+    <canvas id="canvas" width="640" height="480" style="border: 1px solid #000;"></canvas>
+    <br><br>
+    <button onclick="generateVideo()">Generate Test MP4</button>
+    <br><br>
+    <video id="video" controls style="width: 640px; height: 480px;"></video>
+    
+    <script>
+        function generateVideo() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const video = document.getElementById('video');
+            
+            // Create a simple animated video
+            const frames = [];
+            const duration = 3; // 3 seconds
+            const fps = 30;
+            const totalFrames = duration * fps;
+            
+            for (let i = 0; i < totalFrames; i++) {
+                // Clear canvas
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, 640, 480);
+                
+                // Draw moving rectangle (simulating vehicle)
+                const x = (i / totalFrames) * 500 + 50;
+                const y = 200;
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(x, y, 80, 40);
+                
+                // Add text
+                ctx.fillStyle = '#fff';
+                ctx.font = '20px Arial';
+                ctx.fillText(`Frame ${i + 1}`, 50, 50);
+                ctx.fillText('Test Vehicle', x, y - 10);
+                
+                // Convert canvas to blob
+                canvas.toBlob(blob => {
+                    frames.push(blob);
+                    if (frames.length === totalFrames) {
+                        createVideoFromFrames(frames);
+                    }
+                }, 'image/png');
+            }
+        }
+        
+        function createVideoFromFrames(frames) {
+            // This is a simplified approach - in real implementation you'd use MediaRecorder
+            // For now, we'll create a simple video element with the first frame
+            const canvas = document.getElementById('canvas');
+            const video = document.getElementById('video');
+            
+            // Create a simple video by cycling through frames
+            let currentFrame = 0;
+            const interval = setInterval(() => {
+                if (currentFrame < frames.length) {
+                    canvas.toBlob(blob => {
+                        const url = URL.createObjectURL(blob);
+                        video.src = url;
+                    }, 'image/png');
+                    currentFrame++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000/30); // 30 FPS
+        }
+    </script>
+</body>
+</html>

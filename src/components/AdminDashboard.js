@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
-  Car, Users, LogOut, Shield, Activity, Gauge, AlertTriangle, Phone 
+  Car, Users, LogOut, Shield, Activity, Gauge, AlertTriangle, Phone, Camera, Navigation
 } from 'lucide-react';
 import { useRealTimeData } from '../hooks/useRealTimeData';
 import CameraFeed from './common/CameraFeed';
+import DualCameraView from './traffic/DualCameraView';
 
 const AdminDashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -353,6 +354,7 @@ const AdminDashboard = ({ user, onLogout }) => {
           <div className="flex space-x-8">
             {[
               { id: 'overview', label: 'System Overview', icon: Activity },
+              { id: 'traffic', label: 'Traffic Analysis', icon: Navigation },
               { id: 'vehicle', label: 'Vehicle Cameras', icon: Car },
               { id: 'pedestrian', label: 'Pedestrian Cameras', icon: Users },
               { id: 'emergency', label: 'Emergency Lanes', icon: Shield }
@@ -376,6 +378,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         {activeTab === 'overview' && <OverviewTab />}
+        {activeTab === 'traffic' && <DualCameraView />}
         {activeTab === 'vehicle' && <VehicleCamerasTab />}
         {activeTab === 'pedestrian' && <PedestrianCamerasTab />}
         {activeTab === 'emergency' && <EmergencyCamerasTab />}

@@ -10,7 +10,6 @@ const HomePage = ({ setCurrentView }) => {
 
   const quickLinks = [
     { name: 'Home', icon: Home, action: () => setCurrentView('home') },
-    { name: 'File Report', icon: FileText, action: () => setCurrentView('register') },
     { name: 'Services', icon: Settings, action: () => setCurrentView('login') },
     { name: 'Emergency', icon: AlertTriangle, action: () => setCurrentView('login') }
   ];
@@ -56,7 +55,7 @@ const HomePage = ({ setCurrentView }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-lg border-b-4 border-orange-500">
+      <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             {/* Logo */}

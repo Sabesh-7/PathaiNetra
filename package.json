@@ -17,7 +17,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "yolo:setup": "mkdir -p models && echo 'Place yolov8n.pt in models/ directory'",
+    "yolo:test": "node scripts/testYOLO.js"
   },
   "eslintConfig": {
     "extends": [

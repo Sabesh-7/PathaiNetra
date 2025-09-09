@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Car, Users, LogOut, User, AlertTriangle, Navigation, MapPin } from 'lucide-react';
+import { Car, Users, LogOut, User, AlertTriangle, Navigation, MapPin, Camera } from 'lucide-react';
 import { useRealTimeData } from '../hooks/useRealTimeData';
 import CongestionLevel from './common/CongestionLevel';
+import DualCameraView from './traffic/DualCameraView';
 
 const CivilianDashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('routes');
@@ -154,6 +155,17 @@ const CivilianDashboard = ({ user, onLogout }) => {
               <span className="font-medium">Vehicle Routes</span>
             </button>
             <button
+              onClick={() => setActiveTab('traffic')}
+              className={`flex items-center space-x-2 py-4 px-2 border-b-2 transition-colors ${
+                activeTab === 'traffic'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              <Camera className="w-4 h-4" />
+              <span className="font-medium">Live Traffic Analysis</span>
+            </button>
+            <button
               onClick={() => setActiveTab('walk')}
               className={`flex items-center space-x-2 py-4 px-2 border-b-2 transition-colors ${
                 activeTab === 'walk'
@@ -170,6 +182,7 @@ const CivilianDashboard = ({ user, onLogout }) => {
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         {activeTab === 'routes' && <RouteView />}
+        {activeTab === 'traffic' && <DualCameraView />}
         {activeTab === 'walk' && <WalkView />}
       </main>
     </div>
